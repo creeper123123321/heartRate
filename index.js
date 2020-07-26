@@ -81,7 +81,7 @@ $(document).ready(function(){
         unprocessedData.push([average,Date.now()]);
         processedData = normalizeArray(unprocessedData,450);
         
-        var intPoints=processedData;
+        var intPoints=processedData.slice();
         for (var g=0;g<processedData.length;g++)
             intPoints[g]=parseInt(intPoints[g]);
         
