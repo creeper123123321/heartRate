@@ -16,23 +16,27 @@ $(document).ready(function(){
         };
 
     // Put video listeners into place
-    if(navigator.getUserMedia) { // Standard
-        navigator.getUserMedia(videoObj, function(stream) {
-            video.src = stream;
-            video.play();
-        }, errBack);
-    } else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
-        navigator.webkitGetUserMedia(videoObj, function(stream){
-            video.src = window.URL.createObjectURL(stream);
-            video.play();
-        }, errBack);
-    }
-    else if(navigator.mozGetUserMedia) { // Firefox-prefixed
-        navigator.mozGetUserMedia(videoObj, function(stream){
-            video.src = window.URL.createObjectURL(stream);
-            video.play();
-        }, errBack);
-    }
+    navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+      video.srcObject = stream;
+      video.play();
+    }).catch(errBack);
+    //if(navigator.getUserMedia) { // Standard
+    //    navigator.getUserMedia(videoObj, function(stream) {
+    //        video.src = stream;
+    //       video.play();
+    //    }, errBack);
+    //} else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
+    //    navigator.webkitGetUserMedia(videoObj, function(stream){
+    //        video.src = window.URL.createObjectURL(stream);
+    //        video.play();
+    //    }, errBack);
+    //}
+    //else if(navigator.mozGetUserMedia) { // Firefox-prefixed
+    //    navigator.mozGetUserMedia(videoObj, function(stream){
+    //        video.src = window.URL.createObjectURL(stream);
+    //        video.play();
+    //    }, errBack);
+    //}
 
     var videoHeight, videoWidth;
     var canvasCoef=1;
