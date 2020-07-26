@@ -1,7 +1,7 @@
 var canvas,conxtext;
 var unprocessedData=[];
 var processedData=[];
-var average=[0,0];
+var bpmAverage=[0,0];
 
 $(document).ready(function(){
     // Put event listeners into place
@@ -67,7 +67,7 @@ $(document).ready(function(){
         if (processedData.length>449)
         {
             $('#heartRate').text(findHeartRate(dft(processedData),processedData[processedData.length-1][1]-processedData[0][1]));
-            $("#heartRateAvg").text(parseInt(average[0]/average[1]));
+            $("#heartRateAvg").text(parseInt(bpmAverage[0]/bpmAverage[1]));
             console.log(processedData[processedData.length-1][1]-processedData[0][1]);
         }
         unprocessedData=processedData;
@@ -113,11 +113,7 @@ function findHeartRate(data, duration)
             heartRate=i*fps/data.length;
         }
     }
-    average[0]+=heartRate;
-    average[1]++;
+    bpmAverage[0]+=heartRate;
+    bpmAverage[1]++;
     return heartRate;
-}
-
-function resetAvg() {
-     average = [0, 0];
 }
