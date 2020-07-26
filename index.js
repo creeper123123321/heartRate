@@ -62,7 +62,7 @@ $(document).ready(function(){
         unprocessedData.push([average,Date.now()]);
         processedData = normalizeArray(unprocessedData,450);
         
-        $('#dataPoints').text(intPoints.map(it => parseInt(it)).join(', '));
+        $('#dataPoints').text(processedData.map(it => parseInt(it)).join(', '));
         
         if (processedData.length>449)
         {
