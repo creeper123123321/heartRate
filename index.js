@@ -67,6 +67,7 @@ $(document).ready(function(){
         if (processedData.length>449)
         {
             $('#heartRate').text(findHeartRate(dft(processedData),processedData[processedData.length-1][1]-processedData[0][1]));
+            $("#heartRateAvg").text(parseInt(average[0]/average[1]));
             console.log(processedData[processedData.length-1][1]-processedData[0][1]);
         }
         unprocessedData=processedData;
@@ -114,8 +115,7 @@ function findHeartRate(data, duration)
     }
     average[0]+=heartRate;
     average[1]++;
-    //return heartRate;
-    return parseInt(average[0]/average[1]);
+    return heartRate;
 }
 
 function resetAvg() {
