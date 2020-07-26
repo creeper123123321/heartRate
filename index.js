@@ -32,7 +32,7 @@ $(document).ready(function(){
         //var startTime=Date.now();
         context.drawImage(video, 0, 0, videoWidth*canvasCoef, videoHeight*canvasCoef);
         processImage();
-        setTimeout(updateCavnasImage,33);
+        setTimeout(updateCanvasImage,33);
     }
     
     function processImage()
