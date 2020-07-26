@@ -16,7 +16,7 @@ $(document).ready(function(){
         };
 
     // Put video listeners into place
-    navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+    navigator.mediaDevices.getUserMedia(videoObj).then(function(stream) {
       video.srcObject = stream;
       video.play();
     }).catch(errBack);
