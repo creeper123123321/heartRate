@@ -118,6 +118,6 @@ function findHeartRate(data, duration)
     return parseInt(average[0]/average[1]);
 }
 
-functuon resetAvg() {
+function resetAvg() {
      average = [0, 0];
 }
