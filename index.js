@@ -9,40 +9,21 @@ $(document).ready(function(){
     // Grab elements, create settings, etc.
     canvas = document.getElementById("canvas");
     context = canvas.getContext("2d");
-     var video = document.getElementById("video"),
-        videoObj = { "video": true },
-        errBack = function(error) {
-            console.log("Video capture error: ", error.code); 
-        };
+    var video = document.getElementById("video");
+    var videoObj = { "video": true };
+    var errBack = error => console.log("Video capture error: ", error.code); 
 
     // Put video listeners into place
     navigator.mediaDevices.getUserMedia(videoObj).then(function(stream) {
       video.srcObject = stream;
       video.play();
     }).catch(errBack);
-    //if(navigator.getUserMedia) { // Standard
-    //    navigator.getUserMedia(videoObj, function(stream) {
-    //        video.src = stream;
-    //       video.play();
-    //    }, errBack);
-    //} else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
-    //    navigator.webkitGetUserMedia(videoObj, function(stream){
-    //        video.src = window.URL.createObjectURL(stream);
-    //        video.play();
-    //    }, errBack);
-    //}
-    //else if(navigator.mozGetUserMedia) { // Firefox-prefixed
-    //    navigator.mozGetUserMedia(videoObj, function(stream){
-    //        video.src = window.URL.createObjectURL(stream);
-    //        video.play();
-    //    }, errBack);
-    //}
 
     var videoHeight, videoWidth;
     var canvasCoef=1;
     
     
-    function updateCavnasImage()
+    function updateCanvasImage()
     {
         videoHeight= $(video).height();
         videoWidth=$(video).width();
@@ -81,11 +62,7 @@ $(document).ready(function(){
         unprocessedData.push([average,Date.now()]);
         processedData = normalizeArray(unprocessedData,450);
         
-        var intPoints=processedData.slice();
-        for (var g=0;g<processedData.length;g++)
-            intPoints[g]=parseInt(intPoints[g]);
-        
-        $('#dataPoints').text(intPoints.join(', '));
+        $('#dataPoints').text(intPoints.map(it => parseInt(it)).join(', '));
         
         if (processedData.length>449)
         {
@@ -97,10 +74,7 @@ $(document).ready(function(){
     }
    
     
-    //setTimeout(function(){
-       
-        updateCavnasImage();
-    //},2000);
+    updateCanvasImage();
 });
 function normalizeArray(data, length)
 {
@@ -120,7 +94,7 @@ function dft(data)
         res.push(0);
         for (j=0;j<data.length;j++)
         {
-            res[i]+=data[j][0]*Math.cos(2*3.1415*i*j/data.length);
+            res[i]+=data[j][0]*Math.cos(2 * Math.PI * i * j /data.length);
         }
     }
     return res;
@@ -142,4 +116,8 @@ function findHeartRate(data, duration)
     average[1]++;
     //return heartRate;
     return parseInt(average[0]/average[1]);
+}
+
+functuon resetAvg() {
+     average = [0, 0];
 }
