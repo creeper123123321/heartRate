@@ -59,6 +59,9 @@ $(document).ready(function(){
         context.strokeStyle = 'blue';
         context.stroke();
         
+        if (unprocessedData.length != 0 && Math.abs(average - unprocessedData[unprocessedData.length - 1][0]) > 10) {
+            reset();
+        }
         unprocessedData.push([average,Date.now()]);
         processedData = normalizeArray(unprocessedData,450);
         
@@ -116,4 +119,11 @@ function findHeartRate(data, duration)
     bpmAverage[0]+=heartRate;
     bpmAverage[1]++;
     return heartRate;
+}
+function reset() {
+    unprocessedData = [];
+    processedData = [];
+    average = [0, 0];
+    $('#heartRate').text("N/A");
+    $("#heartRateAvg").text("");
 }
