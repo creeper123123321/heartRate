@@ -1,4 +1,4 @@
-var canvas, context;
+var canvas, context, video, canvasCoef, dataPoints, heartRateText;
 var unprocessedData=[];
 var processedData=[];
 var bpmAverage=[0,0];
@@ -9,7 +9,9 @@ $(document).ready(function(){
     // Grab elements, create settings, etc.
     canvas = document.getElementById("canvas");
     context = canvas.getContext("2d");
-    var video = document.getElementById("video");
+    video = document.getElementById("video");
+    dataPoints = document.getElementById("dataPoints");
+    heartRateText = document.getElementById("heartRate");
     var videoObj = { "video": true };
     var errBack = error => console.log("Video capture error: ", error.code); 
 
@@ -19,16 +21,13 @@ $(document).ready(function(){
       video.play();
     }).catch(errBack);
 
-    var videoHeight, videoWidth;
-    var canvasCoef=1;
+    canvasCoef=1;
     
     
     function updateCanvasImage()
     {
-        videoHeight = $(video).height();
-        videoWidth = $(video).width();
-        canvas.width = videoWidth * canvasCoef;
-        canvas.height = videoHeight * canvasCoef;
+        canvas.width = video.videoWidth * canvasCoef;
+        canvas.height = video.videoHeight * canvasCoef;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         processImage();
         requestAnimationFrame(updateCanvasImage);
@@ -37,7 +36,7 @@ $(document).ready(function(){
     function processImage()
     {
        
-        var mRect=[canvas.width/2 - 30, canvas.height/2 - 20, 60, 40];
+        var mRect = [canvas.width/2 - 25, canvas.height/2 - 15, 50, 30];
   
         
         var average = intSequence(mRect[2], mRect[0]).map(i => {
@@ -58,13 +57,13 @@ $(document).ready(function(){
         unprocessedData.push([average,Date.now()]);
         processedData = normalizeArray(unprocessedData, 450);
         
-        $('#dataPoints').text(processedData.length + "/450: " + processedData.map(it => parseInt(it)).join(' '));
+        dataPoints.innerHTML = processedData.length + "/450: " + processedData.map(it => parseInt(it)).join(' ');
         
         if (processedData.length == 450) {
             var duration = processedData[processedData.length-1][1] - processedData[0][1];
             console.log(duration);
             var rate = findHeartRate(dft(processedData), duration).toFixed(1);
-            $("#heartRate").text(rate);
+            heartRateText.innerHTML = rate;
             context.font = "20px monospaced";
             context.strokeText(rate, mRect[0], mRect[1]);
         }
@@ -115,7 +114,7 @@ function reset() {
     unprocessedData = [];
     processedData = [];
     average = [0, 0];
-    $('#heartRate').text("N/A");
+    heartRateText.innerHTML = "N/A";
 }
 function intSequence(length, start = 0) {
     return [...Array(length).keys()].map(it => it + start);
