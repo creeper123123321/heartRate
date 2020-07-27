@@ -1,4 +1,4 @@
-var canvas,conxtext;
+var canvas, context;
 var unprocessedData=[];
 var processedData=[];
 var bpmAverage=[0,0];
@@ -25,53 +25,49 @@ $(document).ready(function(){
     
     function updateCanvasImage()
     {
-        videoHeight= $(video).height();
-        videoWidth=$(video).width();
-        canvas.width=videoWidth*canvasCoef;
-        canvas.height=videoHeight*canvasCoef;
+        videoHeight = $(video).height();
+        videoWidth = $(video).width();
+        canvas.width = videoWidth * canvasCoef;
+        canvas.height = videoHeight * canvasCoef;
         //var startTime=Date.now();
-        context.drawImage(video, 0, 0, videoWidth*canvasCoef, videoHeight*canvasCoef);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
         processImage();
-        setTimeout(updateCanvasImage,33);
+        setTimeout(updateCanvasImage, 33);
     }
     
     function processImage()
     {
        
-        var mRect=[canvas.width/2-25, canvas.height/2-15, 50, 30];
+        var mRect=[canvas.width/2 - 30, canvas.height/2 - 20, 60, 40];
   
         
-        var average=0;
-        for (var i=mRect[0];i<mRect[0]+mRect[2];i++)
-        {
-            for (var j=mRect[1];j<mRect[1]+mRect[3];j++)
-            {
-                average+=context.getImageData(i, j, 1, 1).data[1];
-            }
-        }
-        average/=mRect[2]*mRect[3];
+        var average = intSequence(mRect[2], mRect[0]).map(i => {
+            return intSequence(mRect[3], mRect[1]).map(j => context.getImageData(i, j, 1, 1).data[1]).reduce((a, b) => a + b);
+        }).reduce((a, b) => a + b) / (mRect[2] * mRect[3]);
                 
         context.beginPath();
-        context.rect(mRect[0],mRect[1],mRect[2],mRect[3]);
-        context.fillStyle = 'rgb('+parseInt(average)+','+parseInt(average)+','+parseInt(average)+')';
+        context.rect(mRect[0], mRect[1], mRect[2], mRect[3]);
+        context.fillStyle = 'rgba(0,'+parseInt(average)+',0,0.5)';
         context.fill();
         context.lineWidth = 2;
-        context.strokeStyle = 'blue';
+        context.strokeStyle = "green";
         context.stroke();
         
         if (unprocessedData.length != 0 && Math.abs(average - unprocessedData[unprocessedData.length - 1][0]) > 10) {
             reset();
         }
         unprocessedData.push([average,Date.now()]);
-        processedData = normalizeArray(unprocessedData,450);
+        processedData = normalizeArray(unprocessedData, 450);
         
-        $('#dataPoints').text(processedData.map(it => parseInt(it)).join(', '));
+        $('#dataPoints').text(processedData.length + "/450: " + processedData.map(it => parseInt(it)).join(' '));
         
-        if (processedData.length>449)
-        {
-            $('#heartRate').text(findHeartRate(dft(processedData),processedData[processedData.length-1][1]-processedData[0][1]));
-            $("#heartRateAvg").text(parseInt(bpmAverage[0]/bpmAverage[1]));
-            console.log(processedData[processedData.length-1][1]-processedData[0][1]);
+        if (processedData.length == 450) {
+            var duration = processedData[processedData.length-1][1] - processedData[0][1];
+            console.log(duration);
+            var rate = findHeartRate(dft(processedData), duration).toFixed(1);
+            $("#heartRate").text(rate);
+            context.font = "20px monospaced";
+            context.strokeText(rate, mRect[0], mRect[1]);
         }
         unprocessedData=processedData;
         
@@ -103,27 +99,24 @@ function dft(data)
     }
     return res;
 }
-function findHeartRate(data, duration)
-{
-    var fps=data.length*60*1000/duration;
-    var heartRate=0;
-    var maxData=0;
-    for (var i=0;i<data.length;i++)
-    {
-        if (i*fps/data.length>50 && i*fps/data.length<150 && data[i]>maxData)
-        {
-            maxData=data[i];
-            heartRate=i*fps/data.length;
-        }
+function findHeartRate(data, duration) {
+    var fps = data.length * 60 * 1000 / duration;
+    var heartRate = (intSequence(data.length)
+        .map(i => [i * fps / data.length, data[i]])
+        .filter(it => it[0] > 50 && it[0] < 150)
+        .sort((a, b) => a[1] - b[1])[0] || [0])[0];
+    if (heartRate != 0) {
+        bpmAverage[0] += heartRate;
+        bpmAverage[1]++;
     }
-    bpmAverage[0]+=heartRate;
-    bpmAverage[1]++;
-    return heartRate;
+    return bpmAverage[0] / bpmAverage[1];
 }
 function reset() {
     unprocessedData = [];
     processedData = [];
     average = [0, 0];
     $('#heartRate').text("N/A");
-    $("#heartRateAvg").text("");
+}
+function intSequence(length, start = 0) {
+    return [...Array(length).keys()].map(it => it + start);
 }
