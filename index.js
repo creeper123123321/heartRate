@@ -26,8 +26,10 @@ $(document).ready(function(){
     
     function updateCanvasImage()
     {
-        canvas.width = video.videoWidth * canvasCoef;
-        canvas.height = video.videoHeight * canvasCoef;
+        var cNewHeight = video.videoHeight * canvasCoef;
+        var cNewWidth = video.videoWidth * canvasCoef;
+        if (canvas.width != cNewWidth) canvas.width = cNewWidth;
+        if (canvas.height != cNewHeight) canvas.height = cNewHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         processImage();
         requestAnimationFrame(updateCanvasImage);
