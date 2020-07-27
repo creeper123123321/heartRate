@@ -40,10 +40,9 @@ $(document).ready(function(){
        
         var mRect = [canvas.width/2 - 25, canvas.height/2 - 15, 50, 30];
   
-        
-        var average = intSequence(mRect[2], mRect[0]).map(i => {
-            return intSequence(mRect[3], mRect[1]).map(j => context.getImageData(i, j, 1, 1).data[1]).reduce((a, b) => a + b);
-        }).reduce((a, b) => a + b) / (mRect[2] * mRect[3]);
+        var i = 0;
+        var average = context.getImageData(mRect[0], mRect[1], mRect[2], mRect[3]).data.filter(it => (i++ % 4) == 1)
+            .reduce((a, b) => a + b) / (mRect[2] * mRect[3]);
                 
         context.beginPath();
         context.rect(mRect[0], mRect[1], mRect[2], mRect[3]);
@@ -59,7 +58,7 @@ $(document).ready(function(){
         unprocessedData.push([average,Date.now()]);
         processedData = normalizeArray(unprocessedData, 450);
         
-        dataPoints.innerHTML = processedData.length + "/450: " + processedData.map(it => parseInt(it)).join(' ');
+        dataPoints.innerHTML = processedData.length + "/450: " + processedData.map(it => parseInt(it[0])).join(' ');
         
         if (processedData.length == 450) {
             var duration = processedData[processedData.length-1][1] - processedData[0][1];
