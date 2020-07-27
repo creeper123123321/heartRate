@@ -29,10 +29,9 @@ $(document).ready(function(){
         videoWidth = $(video).width();
         canvas.width = videoWidth * canvasCoef;
         canvas.height = videoHeight * canvasCoef;
-        //var startTime=Date.now();
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         processImage();
-        setTimeout(updateCanvasImage, 33);
+        requestAnimationFrame(updateCanvasImage);
     }
     
     function processImage()
@@ -100,9 +99,10 @@ function dft(data)
     return res;
 }
 function findHeartRate(data, duration) {
-    var fps = data.length * 60 * 1000 / duration;
+    var framesPerSecond = 1000 * data.length / duration;
+    var framesPerMinute = framesPerSecond * 60;
     var heartRate = (intSequence(data.length)
-        .map(i => [i * fps / data.length, data[i]])
+        .map(i => [i * framesPerMinute / data.length, data[i]])
         .filter(it => it[0] > 50 && it[0] < 150)
         .sort((a, b) => a[1] - b[1])[0] || [0])[0];
     if (heartRate != 0) {
