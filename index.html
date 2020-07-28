@@ -10,14 +10,17 @@
     <body>
         <video style="display: none" id="video"></video>
         <div>
-            <canvas id="canvas" width="640" height="480" style="max-width:100%"></canvas>
+            <canvas id="canvas" style="max-width:100%"></canvas>
             <br>
-            <span style="font-size: 17px;">Heart Rate: </span>
-            <span style="font-size: 17px;" id="heartRate">N\A</span>
-            <span style="font-size: 17px;">BPM</span>
+            <span>Heart Rate: </span>
+            <span id="heartRate">N\A</span>
+            <span>BPM</span>
         </div>
         <div>
-            Data Points: <div id="dataPoints"></div>
+            <details>
+                <summary>Data Points:</summary>
+                <div id="dataPoints"></div>
+            </details>
         </div>
     </body>
 </html>
