@@ -4,6 +4,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta charset="UTF-8">
         <title>HTML5 Heart Rate</title>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/dspjs@1.0.0/dsp.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script type="text/javascript" src="index.js"></script>
     </head>
@@ -11,13 +12,15 @@
         <video style="display: none" id="video"></video>
         <div>
             <canvas id="canvas" style="max-width:100%"></canvas>
-            <br>
+            <div>x<input type="number" step="0.01" id="canvasCoef" value="1"></div>
+            <div>Rectangle: <input type="number" id="rectangleWidth" value="50"> x <input type="number" id="rectangleHeight" value="30"></div>
             <span>Heart Rate: </span>
             <span id="heartRate">N\A</span>
             <span>BPM</span>
         </div>
         <div>
-            <details>
+            <span id="nDataPoints"></span>/2^<input type="number" id="maxPoints" value="9">
+            <details id="pointsDetails">
                 <summary>Data Points:</summary>
                 <div id="dataPoints"></div>
             </details>

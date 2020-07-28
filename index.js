@@ -1,10 +1,23 @@
-var canvas, context, video, canvasCoef, dataPoints, heartRateText;
+var canvas, context, video, canvasCoef, dataPoints, heartRateText, nDataPoints, pointsDetails;
 var unprocessedData=[];
 var processedData=[];
 var bpmAverage=[0,0];
+var rectangleHeight, rectangleWidth;
+var maxPoints;
+var canvasCoef;
 
-$(document).ready(function(){
+$(() => {
     // Put event listeners into place
+
+    function updateData() {
+        rectangleHeight = parseInt($("#rectangleHeight").val());
+        rectangleWidth = parseInt($("#rectangleWidth").val());
+        maxPoints = 2 ** parseInt($("#maxPoints").val());
+        canvasCoef = parseFloat($("#canvasCoef").val());
+    }
+    
+    $("#rectangleHeight, #rectangleWidth, #maxPoints, #canvasCoef").on("change", updateData);
+    updateData();
 
     // Grab elements, create settings, etc.
     canvas = document.getElementById("canvas");
@@ -12,37 +25,42 @@ $(document).ready(function(){
     video = document.getElementById("video");
     dataPoints = document.getElementById("dataPoints");
     heartRateText = document.getElementById("heartRate");
+    nDataPoints = document.getElementById("nDataPoints");
+    pointsDetails = document.getElementById("pointsDetails");
     var videoObj = { "video": true };
     var errBack = error => console.log("Video capture error: ", error.code); 
 
     // Put video listeners into place
-    navigator.mediaDevices.getUserMedia(videoObj).then(function(stream) {
+    navigator.mediaDevices.getUserMedia(videoObj).then(stream => {
       video.srcObject = stream;
       video.play();
     }).catch(errBack);
-
-    canvasCoef=1;
-    
     
     function updateCanvasImage()
     {
+        var timeStart = Date.now();
         var cNewHeight = video.videoHeight * canvasCoef;
         var cNewWidth = video.videoWidth * canvasCoef;
         if (canvas.width != cNewWidth) canvas.width = cNewWidth;
         if (canvas.height != cNewHeight) canvas.height = cNewHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         processImage();
-        requestAnimationFrame(updateCanvasImage);
+        setTimeout(() => requestAnimationFrame(updateCanvasImage), 33 - (Date.now() - timeStart));
     }
     
     function processImage()
     {
        
-        var mRect = [canvas.width/2 - 25, canvas.height/2 - 15, 50, 30];
+        var mRect = [(canvas.width - rectangleWidth) / 2, (canvas.height - rectangleHeight) / 2, rectangleWidth, rectangleHeight];
   
-        var i = 0;
-        var average = context.getImageData(mRect[0], mRect[1], mRect[2], mRect[3]).data.filter(it => (i++ % 4) == 1)
-            .reduce((a, b) => a + b) / (mRect[2] * mRect[3]);
+        var pixels = mRect[2] * mRect[3];
+        var imageData = context.getImageData(mRect[0], mRect[1], mRect[2], mRect[3]).data;
+        
+        var average = 0;
+        for (var i = 0; i < pixels; i++) {
+            average += imageData[i * 4 + 1];
+        }
+        average /= pixels;
                 
         context.beginPath();
         context.rect(mRect[0], mRect[1], mRect[2], mRect[3]);
@@ -55,61 +73,68 @@ $(document).ready(function(){
         if (unprocessedData.length != 0 && Math.abs(average - unprocessedData[unprocessedData.length - 1][0]) > 10) {
             reset();
         }
-        unprocessedData.push([average,Date.now()]);
-        processedData = normalizeArray(unprocessedData, 450);
+        var time = Date.now();
+        unprocessedData.push([average, time]);
+        processedData = normalizeArray(unprocessedData, maxPoints);
         
-        dataPoints.innerHTML = processedData.length + "/450: " + processedData.map(it => parseInt(it[0])).join(' ');
+        nDataPoints.innerHTML = processedData.length;
+        if (pointsDetails.open) {
+            dataPoints.innerHTML = processedData.map(it => parseInt(it[0])).join(' ');
+        }
         
-        if (processedData.length == 450) {
-            var duration = processedData[processedData.length-1][1] - processedData[0][1];
-            console.log(duration);
-            var rate = findHeartRate(dft(processedData), duration).toFixed(1);
+        if (processedData.length == maxPoints) {
+            var duration = time - processedData[0][1];
+            
+            var rate = findHeartRate(processedData, context, duration)
+
             heartRateText.innerHTML = rate;
             context.font = "20px monospaced";
             context.strokeText(rate, mRect[0], mRect[1]);
         }
-        unprocessedData=processedData;
+        unprocessedData = processedData;
         
     }
    
     
     updateCanvasImage();
 });
-function normalizeArray(data, length)
-{
-    var res = [];
-    if (data.length<length)
-        return data;
-    for (var i=data.length-length;i<data.length;i++)
-        res.push(data[i]);
-    return res;        
+function normalizeArray(data, length) {
+    return (data.length <= length) ? data : data.slice(-length);
 }
-function dft(data)
-{
-    var i,j;
-    var res=[];
-    for (i=0;i<data.length;i++)
-    {
-        res.push(0);
-        for (j=0;j<data.length;j++)
-        {
-            res[i]+=data[j][0]*Math.cos(2 * Math.PI * i * j /data.length);
+function findHeartRate(adata, context, duration) {
+    var nCopy = 2;
+    var data = new Array(adata.length * nCopy);
+    for (var i = 0; i < adata.length;) {
+        data.fill(adata[i], i * nCopy, ++i * nCopy);
+    }
+    
+    var framesPerSecond = 1000 * data.length / duration;
+    var obj = new FFT(data.length, framesPerSecond);
+    obj.forward(data.map(it => it[0]));
+    
+    var heartRate = 0;
+    var maxMagnitude = 0;
+    var steps = 0;
+    for (var i = 0; i < obj.spectrum.length; i++) {
+        var bpm = obj.getBandFrequency(i) * 60;
+        var magnitude = obj.spectrum[i];
+        if (bpm > 50 && bpm < 180) {
+            steps++;
+            if (magnitude >= maxMagnitude) {
+              maxMagnitude = magnitude;
+              heartRate = bpm;
+            }
+        } else if (bpm > 180) {
+            break;
         }
     }
-    return res;
-}
-function findHeartRate(data, duration) {
-    var framesPerSecond = 1000 * data.length / duration;
-    var framesPerMinute = framesPerSecond * 60;
-    var heartRate = (intSequence(data.length)
-        .map(i => [i * framesPerMinute / data.length, data[i]])
-        .filter(it => it[0] > 50 && it[0] < 150)
-        .sort((a, b) => a[1] - b[1])[0] || [0])[0];
+    console.log(steps);
     if (heartRate != 0) {
+        context.strokeText(heartRate.toFixed(), 0, canvas.height);
         bpmAverage[0] += heartRate;
         bpmAverage[1]++;
     }
-    return bpmAverage[0] / bpmAverage[1];
+    return (bpmAverage[0] / bpmAverage[1]).toFixed(1);
 }
 function reset() {
     unprocessedData = [];
