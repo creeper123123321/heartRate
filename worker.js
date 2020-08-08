@@ -26,5 +26,5 @@ onmessage = function(e) {
         }
     }
     console.log(bpms);
-    port.postMessage(heartRate);
+    postMessage(heartRate);
 }
