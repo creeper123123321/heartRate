@@ -5,6 +5,7 @@ var bpmAverage=[0,0];
 var rectangleHeight, rectangleWidth;
 var maxPoints;
 var canvasCoef;
+var worker = new Worker("worker.js");
 
 $(() => {
     // Put event listeners into place
@@ -30,6 +31,11 @@ $(() => {
     var videoObj = { "video": true };
     var errBack = error => console.log("Video capture error: ", error.code); 
 
+    worker.onmessage = e => {
+        bpmAverage[0] += e.data;
+        heartRateText.innerHTML = bpmAverage[0] / ++bpmAverage[1];
+    }
+
     // Put video listeners into place
     navigator.mediaDevices.getUserMedia(videoObj).then(stream => {
       video.srcObject = stream;
@@ -45,7 +51,8 @@ $(() => {
         if (canvas.height != cNewHeight) canvas.height = cNewHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         processImage();
-        setTimeout(() => requestAnimationFrame(updateCanvasImage), 33 - (Date.now() - timeStart));
+        requestAnimationFrame(updateCanvasImage);
+        //setTimeout(() => requestAnimationFrame(updateCanvasImage), 33 - (Date.now() - timeStart));
     }
     
     function processImage()
@@ -84,12 +91,12 @@ $(() => {
         
         if (processedData.length == maxPoints) {
             var duration = time - processedData[0][1];
-            
-            var rate = findHeartRate(processedData, context, duration)
 
-            heartRateText.innerHTML = rate;
-            context.font = "20px monospaced";
-            context.strokeText(rate, mRect[0], mRect[1]);
+            worker.postMessage([processedData, duration]);
+
+//            heartRateText.innerHTML = rate;
+//            context.font = "20px monospaced";
+//            context.strokeText(rate, mRect[0], mRect[1]);
         }
         unprocessedData = processedData;
         
