@@ -91,7 +91,8 @@ $(() => {
         
         if (processedData.length == maxPoints) {
             var duration = time - processedData[0][1];
-
+            context.font = "20px monospaced";
+            context.strokeText((bpmAverage[0] / bpmAverage[1]).toFixed(1), mRect[0], mRect[1]);
             worker.postMessage([processedData, duration]);
 
 //            heartRateText.innerHTML = rate;
