@@ -101,7 +101,7 @@ $(() => {
 function normalizeArray(data, length) {
     return (data.length <= length) ? data : data.slice(-length);
 }
-function findHeartRate(adata, context, duration) {
+function findHeartRate(data, context, duration) {
     var framesPerSecond = 1000 * data.length / duration;
     var obj = new FFT(data.length, framesPerSecond);
     obj.forward(data.map(it => it[0]));
