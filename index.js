@@ -109,43 +109,9 @@ $(() => {
 function normalizeArray(data, length) {
     return (data.length <= length) ? data : data.slice(-length);
 }
-function findHeartRate(data, context, duration) {
-    var framesPerSecond = 1000 * data.length / duration;
-    var obj = new FFT(data.length, framesPerSecond);
-    obj.forward(data.map(it => it[0]));
-    
-    var heartRate = 0;
-    var maxMagnitude = 0;
-    var bpms = [];
-    for (var i = 0; i < obj.spectrum.length; i++) {
-        var bpm = obj.getBandFrequency(i) * 60;
-        var magnitude = obj.spectrum[i];
-        if (bpm > 50) {
-            if (bpm < 180) {
-                bpms.push(bpm);
-                if (magnitude >= maxMagnitude) {
-                    maxMagnitude = magnitude;
-                    heartRate = bpm;
-                }
-            } else {
-                break;
-            }
-        }
-    }
-    console.log(bpms);
-    if (heartRate != 0) {
-        context.strokeText(heartRate.toFixed(), 0, canvas.height);
-        bpmAverage[0] += heartRate;
-        bpmAverage[1]++;
-    }
-    return (bpmAverage[0] / bpmAverage[1]).toFixed(1);
-}
 function reset() {
     unprocessedData = [];
     processedData = [];
     average = [0, 0];
     heartRateText.innerHTML = "N/A";
-}
-function intSequence(length, start = 0) {
-    return [...Array(length).keys()].map(it => it + start);
 }
