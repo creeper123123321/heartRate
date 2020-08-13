@@ -3,7 +3,7 @@ importScripts("https://cdn.jsdelivr.net/npm/dspjs@1.0.0/dsp.js");
 onmessage = function(e) {
     var data = e.data[0];
     var duration = e.data[1];
-    var framesPerMinute = 1000 * data.length / duration / 60;
+    var framesPerMinute = 1000 * 60 * data.length / duration;
     var obj = new FFT(data.length, framesPerMinute);
     obj.forward(data.map(it => it[0]));
     
