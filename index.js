@@ -1,4 +1,4 @@
-var canvas, context, video, canvasCoef, dataPoints, heartRateText, nDataPoints, pointsDetails;
+var canvas, context, video, canvasCoef, dataPoints, heartRateText, nDataPoints, pointsDetails, spec;
 var unprocessedData=[];
 var processedData=[];
 var bpmAverage=[0,0];
@@ -28,11 +28,16 @@ $(() => {
     heartRateText = document.getElementById("heartRate");
     nDataPoints = document.getElementById("nDataPoints");
     pointsDetails = document.getElementById("pointsDetails");
+    spec = document.getElementById("spec");
     var videoObj = { "video": true };
     var errBack = error => console.log("Video capture error: ", error.code); 
 
     worker.onmessage = e => {
-        bpmAverage[0] += e.data;
+        bpmAverage[0] += e.data[0];
+        let maxVal = e.data[1].map(it => it[1]).reduce((a, b) => a > b ? a : b);
+        let htmlSpec = "";
+        e.data[1].forEach((val, i) => htmlSpec += "<p><meter id='bpm_" + i + "' value=" + val[1] + " min='0' max=" + maxVal + "></meter><label for='bpm_" + i + "'>" + val[0].toFixed(1) + "</label></p>");
+        spec.innerHTML = htmlSpec;
         heartRateText.innerHTML = bpmAverage[0] / ++bpmAverage[1];
     }
 

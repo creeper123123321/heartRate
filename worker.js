@@ -15,7 +15,7 @@ onmessage = function(e) {
         var magnitude = obj.spectrum[i];
         if (bpm > 50) {
             if (bpm < 180) {
-                bpms.push(bpm);
+                bpms.push([bpm, magnitude]);
                 if (magnitude >= maxMagnitude) {
                     maxMagnitude = magnitude;
                     heartRate = bpm;
@@ -25,6 +25,5 @@ onmessage = function(e) {
             }
         }
     }
-    console.log(bpms);
-    postMessage(heartRate);
+    postMessage([heartRate, bpms]);
 }
