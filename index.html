@@ -4,28 +4,34 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta charset="UTF-8">
         <title>HTML5 Heart Rate</title>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script type="text/javascript" src="index.js"></script>
+        <style>
+            input {max-width: 100px}
+            #canvas {max-width: 100%}
+            #video {display:none}
+            #content {overflow:auto}
+            #capture {float:left}
+        </style>
     </head>
     <body>
-        <video style="display: none" id="video"></video>
-        <div style="overflow:auto">
-        <div style="float:left">
-            <canvas id="canvas" style="max-width:100%"></canvas>
-            <form id="settings">
-                <p>Resolution * <input type="number" step="0.01" id="canvasCoef" value="1" onchange="updateData()"></p>
-                <p>Rectangle: <input type="number" id="rectangleWidth" value="50" onchange="updateData()"> x <input type="number" id="rectangleHeight" value="30" onchange=""></p>
-                <p>Heart Rate: <span id="heartRate">N\A</span> BPM</p>
-                <p>Data points: <span id="nDataPoints"></span> / 2 ^ <input type="number" id="maxPoints" value="9"></p>
-            </form>
-        </div>
-        <div>
-            <details id="pointsDetails">
-                <summary>Data Points:</summary>
-                <div id="spec"></div>
-                <div id="dataPoints"></div>
-            </details>
-        </div>
+        <video id="video"></video>
+        <div id="content">
+            <div id="capture">
+                <canvas id="canvas"></canvas>
+                <form id="settings">
+                    <p>Resolution * <input type="number" step="0.01" id="canvasCoef" value="1"></p>
+                    <p>Rectangle: <input type="number" id="rectangleWidth" value="50"> x <input type="number" id="rectangleHeight" value="30"></p>
+                    <p>Heart Rate: <span id="heartRate">N\A</span> BPM</p>
+                    <p>Data points: <span id="nDataPoints"></span> / 2 ^ <input type="number" id="maxPoints" value="9"></p>
+                </form>
+            </div>
+            <div id="points">
+                <details id="pointsDetails">
+                    <summary>Data Points:</summary>
+                    <div id="spec"></div>
+                    <div id="dataPoints"></div>
+                </details>
+            </div>
         </div>
     </body>
 </html>

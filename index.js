@@ -36,17 +36,18 @@ onmessage = function(e) {
 }
 `], {type:"text/javascript"})));
 
-$(() => {
+window.onload = () => {
     // Put event listeners into place
 
     function updateData() {
-        rectangleHeight = parseInt($("#rectangleHeight").val());
-        rectangleWidth = parseInt($("#rectangleWidth").val());
-        maxPoints = 2 ** parseInt($("#maxPoints").val());
-        canvasCoef = parseFloat($("#canvasCoef").val());
+        rectangleHeight = parseInt(document.getElementById("rectangleHeight").value);
+        rectangleWidth = parseInt(document.getElementById("rectangleWidth").value);
+        maxPoints = 2 ** parseInt(document.getElementById("maxPoints").value);
+        canvasCoef = parseFloat(document.getElementById("canvasCoef").value);
     }
-    
-    $("#settings").on("change", updateData);
+
+    document.getElementById("settings").onchange = updateData;
+
     updateData();
 
     // Grab elements, create settings, etc.
@@ -128,7 +129,7 @@ $(() => {
    
     
     updateCanvasImage();
-});
+};
 
 function normalizeArray(data, length) {
     return (data.length <= length) ? data : data.slice(-length);
