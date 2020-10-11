@@ -45,9 +45,7 @@ window.onload = () => {
         maxPoints = 2 ** parseInt(document.getElementById("maxPoints").value);
         canvasCoef = parseFloat(document.getElementById("canvasCoef").value);
     }
-
     document.getElementById("settings").onchange = updateData;
-
     updateData();
 
     // Grab elements, create settings, etc.
@@ -59,8 +57,6 @@ window.onload = () => {
     nDataPoints = document.getElementById("nDataPoints");
     pointsDetails = document.getElementById("pointsDetails");
     spec = document.getElementById("spec");
-    var videoObj = { "video": true };
-    var errBack = error => console.log("Video capture error: ", error.code); 
 
     worker.onmessage = e => {
         bpmAverage = bpmAverage * 0.97 + e.data[0] * 0.03;
@@ -71,12 +67,14 @@ window.onload = () => {
         heartRateText.innerHTML = bpmAverage;
     }
 
-    // Put video listeners into place
-    navigator.mediaDevices.getUserMedia(videoObj).then(stream => {
-      video.srcObject = stream;
-      video.play();
-    }).catch(errBack);
-    
+    function captureVideo() {
+        navigator.mediaDevices.getUserMedia({"video": true}).then(stream => {
+          video.srcObject = stream;
+          video.play();
+        }).catch(error => {console.log("Video capture error: ", error.code); captureVideo()});
+    }
+    captureVideo();
+
     function updateCanvasImage() {
         var timeStart = Date.now();
         var cNewHeight = video.videoHeight * canvasCoef;
@@ -87,47 +85,52 @@ window.onload = () => {
         processImage();
         requestAnimationFrame(updateCanvasImage);
     }
-    
+
     function processImage() {
+        var time = Date.now();
         var mRect = [(canvas.width - rectangleWidth) / 2, (canvas.height - rectangleHeight) / 2, rectangleWidth, rectangleHeight];
-  
+
         var pixels = mRect[2] * mRect[3];
         var imageData = context.getImageData(mRect[0], mRect[1], mRect[2], mRect[3]).data;
-        
+
         var average = 0;
         for (var i = 0; i < pixels; i++) {
             average += imageData[i * 4 + 1];
         }
         average /= pixels;
-                
+
+        let beforeVal = data.length == 0 ? 0 : data[data.length - 1][0];
+        if (data.length != 0 && Math.abs(average - beforeVal) > 10) {
+            reset();
+        }
+        data.push([average, time]);
+        data = normalizeArray(data, maxPoints);
+        let maxVal = data.map(it => it[0]).reduce((a, b) => a > b ? a : b, 0);
+        let minVal = data.map(it => it[0]).reduce((a, b) => a > b ? b : a, 255);
+
+        if (data.length == maxPoints) {
+            var duration = time - data[0][1];
+            worker.postMessage([data, duration]);
+        }
+
         context.beginPath();
         context.rect(mRect[0], mRect[1], mRect[2], mRect[3]);
         context.lineWidth = 2;
-        context.strokeStyle = 'rgba(0,' + (parseInt(average) * 0.5 + 30) +',0,0.5)';
+        context.strokeStyle = 'rgba(0,' + parseInt((average - minVal) / (maxVal - minVal) * 200 + 30) +',0,0.5)';
         context.stroke();
-        
-        if (data.length != 0 && Math.abs(average - data[data.length - 1][0]) > 10) {
-            reset();
+        context.font = "20px monospaced";
+
+        if (data.length == maxPoints) {
+            context.strokeStyle = "green";
+            context.strokeText(bpmAverage.toFixed(1), mRect[0], mRect[1]);
         }
-        var time = Date.now();
-        data.push([average, time]);
-        data = normalizeArray(data, maxPoints);
-        
+
         nDataPoints.innerHTML = data.length;
         if (pointsDetails.open) {
             dataPoints.innerHTML = data.map(it => parseInt(it[0])).join(' ');
         }
-        
-        if (data.length == maxPoints) {
-            var duration = time - data[0][1];
-            context.font = "20px monospaced";
-            context.strokeStyle = "green";
-            context.strokeText(bpmAverage.toFixed(1), mRect[0], mRect[1]);
-            worker.postMessage([data, duration]);
-        }
     }
-   
-    
+
     updateCanvasImage();
 };
 
